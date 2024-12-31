@@ -39,11 +39,11 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 
 	// Make the EffectSpecHandle 
 	FGameplayEffectSpecHandle EffectSpecHandle = TargetAbilitySystemComponent->MakeOutgoingSpec(
-		GamePlayEffectClass, 1.f,
+		GamePlayEffectClass, ActorLevel,
 		EffectContextHandle);
 
 	// You need to dereference the TSharedPtr<GameplayEffectSpec> from the SpecHandle in order to Apply a GameplayEffectSpec (like to Self or Target)
-	FActiveGameplayEffectHandle ActiveEffectHandle = TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(
+	const FActiveGameplayEffectHandle ActiveEffectHandle = TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(
 		*EffectSpecHandle.Data.Get());
 
 	if (const bool bIsInfinite = EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy ==
@@ -59,11 +59,17 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+		for (const TSubclassOf<UGameplayEffect> InstantGameplayEffect : MultipleInstantGameplayEffectClass)
+		{
+			ApplyEffectToTarget(TargetActor, InstantGameplayEffect);
+		}
 	}
 	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+		for (const TSubclassOf<UGameplayEffect> DurationEffect : MultipleDurationGameplayEffectClass)
+		{
+			ApplyEffectToTarget(TargetActor, DurationEffect);
+		}
 	}
 	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
@@ -75,15 +81,24 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+		for (const TSubclassOf<UGameplayEffect> InstantGameplayEffect : MultipleInstantGameplayEffectClass)
+		{
+			ApplyEffectToTarget(TargetActor, InstantGameplayEffect);
+		}
 	}
 	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+		for (const TSubclassOf<UGameplayEffect> DurationEffect : MultipleDurationGameplayEffectClass)
+		{
+			ApplyEffectToTarget(TargetActor, DurationEffect);
+		}
 	}
 	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+		for (const TSubclassOf<UGameplayEffect> DurationEffect : MultipleDurationGameplayEffectClass)
+		{
+			ApplyEffectToTarget(TargetActor, DurationEffect);
+		}
 	}
 	if (InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
@@ -96,7 +111,7 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 		}
 		TArray<FActiveGameplayEffectHandle> HandlesToRemove;
 
-		for (auto HandlePair : ActiveEffectHandles)
+		for (TTuple<FActiveGameplayEffectHandle, UAbilitySystemComponent*> HandlePair : ActiveEffectHandles)
 		{
 			if (HandlePair.Value == TargetAbilitySystemComponent)
 			{
@@ -104,7 +119,7 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 				HandlesToRemove.Add(HandlePair.Key);
 			}
 		}
-		for (auto& EffectHandle : HandlesToRemove)
+		for (FActiveGameplayEffectHandle& EffectHandle : HandlesToRemove)
 		{
 			ActiveEffectHandles.FindAndRemoveChecked(EffectHandle);
 		}
