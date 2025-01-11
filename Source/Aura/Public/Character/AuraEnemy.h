@@ -26,9 +26,14 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bHighlighted = false;
 
+	/** Combat Interface */
+	virtual int32 GetPlayerLevel() override;
+	/** End Combat Interface */
 protected:
 	virtual void BeginPlay() override;
 
-private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Class Defaults")
+	int32 Level;
+
 	virtual void InitAbilityActorInfo() override;
 };

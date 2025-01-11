@@ -54,6 +54,8 @@ void AAuraCharacter::InitAbilityActorInfo()
 			AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, AbilitySystemComponent, AttributeSet);
 		}
 	}
+
+	InitializeDefaultAttributes();
 }
 
 void AAuraCharacter::PossessedBy(AController* NewController)
@@ -61,6 +63,13 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	//Init ability actor info for the Server after player has possessed pawn to ensure that player state is valid
 	InitAbilityActorInfo();
+}
+
+int32 AAuraCharacter::GetPlayerLevel()
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	return AuraPlayerState->GetPlayerLevel();
 }
 
 void AAuraCharacter::OnRep_PlayerState()
